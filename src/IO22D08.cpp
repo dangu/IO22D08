@@ -1,9 +1,3 @@
-//Author: cantone-electonics
-//More information welcome to : http://www.canton-electronics.com
-//Arduino 1.6.
-//for Arduino pro mini
-//4 bit Common Cathode Digital Tube Module test code,use Timer2
-
 /*The 4 channel board from the top:
  *
  * Disp   Shift 2
@@ -112,13 +106,29 @@ IO22D08::IO22D08()
 
 void IO22D08::test()
 {
-	uint8_t shiftreg_2;
-	uint8_t shiftreg_3;
-	uint8_t relay_byte;
 
-	relay_byte = 0x10; // Shift register 1
-	shiftreg_2 = 0x00; //Shift register 2
-	shiftreg_3 = 0x14; //Shift register 3
+	shiftreg_relays_t relays = {0};
+	shiftregs_7_seg_t led = {0};
+
+
+	led.A = 1;
+	led.B = 1;
+	led.C = 1;
+	led.D = 0;
+	led.E = 1;
+	led.F = 1;
+	led.G = 1;
+
+	led.Common2 = 1;
+
+	relays.Ch1 = 1;
+	relays.Ch2 = 0;
+	relays.Ch3 = 0;
+	relays.Ch4 = 0;
+	relays.Ch5 = 0;
+	relays.Ch6 = 0;
+	relays.Ch7 = 0;
+	relays.Ch8 = 0;
 
 	pinMode(_latch, OUTPUT);
 	pinMode(_clock, OUTPUT);
@@ -126,9 +136,9 @@ void IO22D08::test()
 
 	digitalWrite(_latch, LOW);
 
-	shiftOut(_data, _clock, MSBFIRST, shiftreg_3);
-	shiftOut(_data, _clock, MSBFIRST, shiftreg_2);
-	shiftOut(_data, _clock, MSBFIRST, relay_byte);
+	shiftOut(_data, _clock, MSBFIRST, led.shiftreg3);
+	shiftOut(_data, _clock, MSBFIRST, led.shiftreg2);
+	shiftOut(_data, _clock, MSBFIRST, relays.raw);
 
 	digitalWrite(_latch, HIGH);
 
