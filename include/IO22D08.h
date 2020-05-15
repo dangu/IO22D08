@@ -15,7 +15,6 @@ public:
 	IO22D08();
 	void test();
 private:
-	int _testvar;
 	int _pin_595_0E; //!< Relay shift register NG-pin (Output enable)
 	int _data;
 	int _clock;
