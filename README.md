@@ -1,2 +1,2 @@
 # IO22D08
-Arduino library of the Arduino Pro Mini PLC board
+Arduino library for the Arduino Pro Mini PLC board

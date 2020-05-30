@@ -91,10 +91,13 @@ U=12.0 V
 21.1 mA No display, 0xFF on relays but no output enable
 234.7 mA No display, 0xFF on relays with output enable
 18.3 mA No display, 0x00 on relays
+95 mA LED D, Common 2, Relay 1
 
 
  */
 #include "IO22D08.h"
+
+static const uint8_t SYMBOLS[]={0x3F, 0x06, 0x5B, 0x4F};
 
 IO22D08::IO22D08()
 {
@@ -104,7 +107,47 @@ IO22D08::IO22D08()
 	_latch 		= A2;
 }
 
-void IO22D08::test()
+void IO22D08::init()
+{
+	pinMode(_latch, OUTPUT);
+	pinMode(_clock, OUTPUT);
+	pinMode(_data, OUTPUT);
+}
+
+void IO22D08::setCharacter(uint8_t charIdx, uint8_t common)
+{
+	uint8_t symbol = SYMBOLS[charIdx];
+
+	_sr_7_seg.A = !((0x01 << 0) & symbol);
+	_sr_7_seg.B = !((0x01 << 1) & symbol);
+	_sr_7_seg.C = !((0x01 << 2) & symbol);
+	_sr_7_seg.D = !((0x01 << 3) & symbol);
+	_sr_7_seg.E = !((0x01 << 4) & symbol);
+	_sr_7_seg.F = !((0x01 << 5) & symbol);
+	_sr_7_seg.G = !((0x01 << 6) & symbol);
+
+	_sr_7_seg.DP = 1; // TODO: Handle decimal point
+
+	_sr_7_seg.Common1 = (common==0?1:0);
+	_sr_7_seg.Common2 = (common==1?1:0);
+	_sr_7_seg.Common3 = (common==2?1:0);
+	_sr_7_seg.Common4 = (common==3?1:0);
+}
+
+void IO22D08::updateShiftregs()
+{
+	digitalWrite(_latch, LOW);
+
+	shiftOut(_data, _clock, MSBFIRST, _sr_7_seg.shiftreg3);
+	shiftOut(_data, _clock, MSBFIRST, _sr_7_seg.shiftreg2);
+	shiftOut(_data, _clock, MSBFIRST, _sr_relays.raw);
+
+	digitalWrite(_latch, HIGH);
+
+	digitalWrite(_pin_595_0E, LOW); // Enable relay output
+}
+
+void IO22D08::test(int x)
 {
 
 	shiftreg_relays_t relays = {0};
@@ -116,12 +159,12 @@ void IO22D08::test()
 	led.C = 1;
 	led.D = 0;
 	led.E = 1;
-	led.F = 1;
+	led.F = x;
 	led.G = 1;
 
 	led.Common2 = 1;
 
-	relays.Ch1 = 1;
+	relays.Ch1 = 0;
 	relays.Ch2 = 0;
 	relays.Ch3 = 0;
 	relays.Ch4 = 0;
@@ -129,10 +172,6 @@ void IO22D08::test()
 	relays.Ch6 = 0;
 	relays.Ch7 = 0;
 	relays.Ch8 = 0;
-
-	pinMode(_latch, OUTPUT);
-	pinMode(_clock, OUTPUT);
-	pinMode(_data, OUTPUT);
 
 	digitalWrite(_latch, LOW);
 
@@ -143,8 +182,6 @@ void IO22D08::test()
 	digitalWrite(_latch, HIGH);
 
 	digitalWrite(_pin_595_0E, LOW); // Enable relay output
-
-
 }
 
 
@@ -197,7 +234,7 @@ int relay4_display;
 
 
 /*       NO.:0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 23 24 25 26 27 28
-/*Character :0,1,2,3,4,5,6,7,8,9,A, b, C, c, d, E, F, H, h, L, n, N, o, P, r, t, U, -,  ,*/
+Character :0,1,2,3,4,5,6,7,8,9,A, b, C, c, d, E, F, H, h, L, n, N, o, P, r, t, U, -,  ,*/
 uchar  TUBE_SEG[] =
 {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,0x88,0x83,0xc6,0xa7,0xa1,0x86,0x8e,0x89,0x8b,0xc7,0xab,0xc8,0xa3,0x8c,0xaf,0x87,0xc1,0xbf,0xff};//Common anode Digital Tube Character Gallery
 
